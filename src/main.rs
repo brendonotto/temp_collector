@@ -6,7 +6,7 @@ use warp::Filter;
 mod models;
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() -> anyhow::Result<()> {
     let db_url: String;
     
     match env::var("DATABASE_URL") {
@@ -19,7 +19,7 @@ async fn main() -> Result<(), sqlx::Error> {
 
 
     #[derive(sqlx::FromRow)]
-    struct Room { id: i64, room_name: String }
+    struct Room { id: i32, room_name: String }
 
     let rooms_db = sqlx::query_as!(
         Room,
