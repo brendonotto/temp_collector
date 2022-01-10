@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sqlx = "0.5.10"
+sqlx = { version = "0.5.10", features = ["runtime-tokio-native-tls" , "postgres"] }
+tokio = { version = "1.15.0", features = ["full"] }
 warp = "0.3.2"
