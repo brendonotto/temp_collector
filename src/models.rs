@@ -27,14 +27,6 @@ pub struct Room {
     pub room_name : String
 }
 
-// impl Responder for Room {
-//     type Body = BoxBody;
-
-//     fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
-//         HttpResponse::Ok().json(&self)
-//     }
-// }
-
 impl Room {
     pub async fn list_all(pool: &PgPool) -> Result<Vec<Room>> {
         let rooms = sqlx::query!(
