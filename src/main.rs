@@ -1,44 +1,49 @@
+use actix_web::{ middleware, web, App, HttpResponse, HttpServer, Responder };
+use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use sqlx;
 use std::env;
-use warp::Filter;
+use anyhow::Result;
 
 mod models;
+mod routes;
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let db_url: String;
-    
-    match env::var("DATABASE_URL") {
-        Ok(pass) => db_url = pass,
-        _ => panic!("Couldn't read db password!!!"),
-    }
+async fn index() -> impl Responder {
+    HttpResponse::Ok().body(
+        r#"
+        Welcome to the temperature collection point.
+        Available routes:
+        GET  /rooms -> list of all rooms
+        POST /temp -> create a new temparture entry
+        "#
+    )
+}
+
+#[actix_web::main]
+async fn main() -> Result<()> {
+    dotenv().ok();
+
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
+    let host = env::var("HOST").expect("HOST is not set in .env file");
+    let port = env::var("PORT")
+        .expect("PORT is not set in .env file")
+        .parse::<u16>()
+        .expect("PORT should be u16");
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(db_url.as_str()).await?;
-
-
-    #[derive(sqlx::FromRow)]
-    struct Room { id: i32, room_name: String }
-
-    let rooms_db = sqlx::query_as!(
-        Room,
-        "SELECT * FROM room"
-        )
-        .fetch_all(&pool)
-        .await?;
     
-    let rooms = warp::path!("rooms")
-        .map(|| rooms_db);
-    
-    warp::serve(rooms).run(([127, 0, 0, 1], 3030)).await;
+    let server = HttpServer::new(move || {
+        App::new()
+            .app_data(pool.clone())
+            .wrap(middleware::Logger::default())
+            .route("/", web::get().to(index))
+            .configure(routes::init)
+    })
+    .bind((host, port))?;
+
+    server.run().await?;
 
     Ok(())
 }
-
-
-
-// Make a simple query to return the given parameter (use a question mark `?` instead of `$1` for MySQL)
-// let row: (i64,) = sqlx::query_as("SELECT $1")
-// .bind(150_i64)
-// .fetch_one(&pool).await?;
