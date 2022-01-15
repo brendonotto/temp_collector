@@ -12,3 +12,4 @@ serde = "1.0.133"
 sqlx = { version = "0.5.10", features = ["runtime-actix-native-tls" , "postgres", "macros", "chrono"] }
 actix-web = { version = "4.0.0-beta.20" }
 dotenv = "0.15.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
