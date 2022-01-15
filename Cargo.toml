@@ -9,6 +9,6 @@ edition = "2021"
 anyhow = "1.0.52"
 chrono = { version = "0.4.19", features = ["serde"] }
 serde = "1.0.133"
-sqlx = { version = "0.5.10", features = ["runtime-tokio-native-tls" , "postgres", "macros", "chrono"] }
-tokio = { version = "1.15.0", features = ["full"] }
-warp = "0.3.2"
+sqlx = { version = "0.5.10", features = ["runtime-actix-native-tls" , "postgres", "macros", "chrono"] }
+actix-web = { version = "4.0.0-beta.20" }
+dotenv = "0.15.0"
