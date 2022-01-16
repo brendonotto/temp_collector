@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS room(
 CREATE TABLE IF NOT EXISTS temperature(
   id integer GENERATED ALWAYS AS IDENTITY,
   room_id integer NOT NULL,
-  temperature decimal NOT NULL,
-  humidity decimal NOT NULL,
-  time TIMESTAMP NOT NULL,
+  temperature resl NOT NULL,
+  humidity resl NOT NULL,
+  time TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (id),
   CONSTRAINT fk_room
     FOREIGN KEY(room_id)

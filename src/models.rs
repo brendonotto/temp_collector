@@ -1,26 +1,25 @@
-use actix_web::{Error, HttpRequest, HttpResponse, Responder};
 use anyhow::Result;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use sqlx::postgres::PgRow;
-use sqlx::{FromRow, Row, PgPool, Executor};
+use sqlx::{FromRow, Row, PgPool};
 
 // Db model of temerature reading
 #[derive(Debug, Deserialize, Serialize, FromRow)]
 pub struct Reading {
     pub id : i32,
     pub room : String,
-    pub temperature : f64,
-    pub humidity: f64,
-    pub timestamp : DateTime<Local>
+    pub temperature : f32,
+    pub humidity: f32,
+    pub timestamp : DateTime<Utc>
 }
 
 // Request model for API
 #[derive(Debug, Deserialize)]
 pub struct ReadingRequest {
     pub room : String,
-    pub temperature : f64,
-    pub humidity: f64,
+    pub temperature : f32,
+    pub humidity: f32,
 }
 
 #[derive(Debug, Serialize, FromRow)]
@@ -52,15 +51,19 @@ impl Reading {
 
         let mut tx = pool.begin().await?;
 
+        let room_id: i32 = sqlx::query("SELECT id FROM room WHERE room_name = $1")
+            .map(|row: PgRow| row.get(0))
+            .fetch_one(&mut tx)
+            .await?;
+
         sqlx::query!(
             r#"
-            SELECT r.id, $2, $3, current_timestamp
-            INTO TABLE temperature              
-            FROM room r WHERE room_name = $1
+            INSERT INTO temperature (room_id, temperature, humidity, time) VALUES ($1, $2, $3, $4)
             "#,
-            reading.room,
+            room_id,
             reading.temperature,
-            reading.humidity
+            reading.humidity,
+            Utc::now()
         )
         .execute(&mut tx)
         .await?;
@@ -86,7 +89,7 @@ impl Reading {
 
         Ok(Reading {
             id: rec.id,
-            room: rec.room,
+            room: rec.room_name,
             temperature: rec.temperature,
             humidity: rec.humidity,
             timestamp: rec.time

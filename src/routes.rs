@@ -12,7 +12,7 @@ async fn rooms(db_pool: web::Data<PgPool>) -> impl Responder {
     let result = Room::list_all(db_pool.get_ref()).await;
     match result {
         Ok(rooms) => HttpResponse::Ok().json(rooms),
-        Err(err) => {
+        Err(_err) => {
             HttpResponse::InternalServerError()
                 .body("Error trying to read all rooms from database")
         }
@@ -24,7 +24,7 @@ async fn create(reading: web::Json<ReadingRequest>, db_pool: web::Data<PgPool>) 
     let result = Reading::create(reading.into_inner(), db_pool.get_ref()).await;
     match result {
         Ok(reading) => HttpResponse::Ok().json(reading),
-        Err(err) => {
+        Err(_err) => {
             HttpResponse::InternalServerError().body("Error creating new reading entry")
         }
     }
