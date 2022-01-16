@@ -5,6 +5,7 @@ use crate::models::{ Room, Reading, ReadingRequest };
 
 pub fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(rooms);
+    cfg.service(create);
 }
 
 #[get("/rooms")]

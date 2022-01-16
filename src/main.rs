@@ -33,10 +33,10 @@ async fn main() -> Result<()> {
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(db_url.as_str()).await?;
-    
+
     let server = HttpServer::new(move || {
         App::new()
-            .app_data(pool.clone())
+            .app_data(web::Data::new(pool.clone()))
             .wrap(middleware::Logger::default())
             .route("/", web::get().to(index))
             .configure(routes::init)
