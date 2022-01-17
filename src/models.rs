@@ -1,8 +1,7 @@
 use anyhow::Result;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc,};
 use serde::{Serialize, Deserialize};
-use sqlx::postgres::PgRow;
-use sqlx::{FromRow, Row, PgPool};
+use sqlx::{FromRow, PgPool};
 
 // Db model of temerature reading
 #[derive(Debug, Deserialize, Serialize, FromRow)]
@@ -51,48 +50,39 @@ impl Reading {
 
         let mut tx = pool.begin().await?;
 
-        let room_id: i32 = sqlx::query("SELECT id FROM room WHERE room_name = $1")
-            .map(|row: PgRow| row.get(0))
+        let record = sqlx::query!("SELECT id FROM room WHERE room_name = $1", reading.room)
             .fetch_one(&mut tx)
             .await?;
 
-        sqlx::query!(
+        let room_id = record.id;
+
+        log::debug!("Just got room id {}", room_id);
+
+        let row = sqlx::query!(
             r#"
             INSERT INTO temperature (room_id, temperature, humidity, time) VALUES ($1, $2, $3, $4)
+            RETURNING id, temperature, humidity, time
             "#,
             room_id,
             reading.temperature,
             reading.humidity,
             Utc::now()
         )
-        .execute(&mut tx)
-        .await?;
-
-        let row_id : i32 = sqlx::query("SELECT last_insert_rowid()")
-            .map(|row: PgRow| row.get(0))
-            .fetch_one(&mut tx)
-            .await?;
-
-        let rec = sqlx::query!(
-            r#"
-            SELECT t.id, r.room_name, temperature, humidity, time 
-            FROM temperature t
-            INNER JOIN room r ON r.id = t.room_id
-            WHERE t.id = $1
-            "#,
-            row_id,
-        )
         .fetch_one(&mut tx)
         .await?;
 
+        log::debug!("Just inserted the reading");
+
         tx.commit().await?;
 
+        log::debug!("Transaction committed");
+
         Ok(Reading {
-            id: rec.id,
-            room: rec.room_name,
-            temperature: rec.temperature,
-            humidity: rec.humidity,
-            timestamp: rec.time
+            id: row.id,
+            room: reading.room,
+            temperature: row.temperature,
+            humidity: row.humidity,
+            timestamp: row.time
         })
     }
 }

@@ -25,7 +25,8 @@ async fn create(reading: web::Json<ReadingRequest>, db_pool: web::Data<PgPool>) 
     let result = Reading::create(reading.into_inner(), db_pool.get_ref()).await;
     match result {
         Ok(reading) => HttpResponse::Ok().json(reading),
-        Err(_err) => {
+        Err(err) => {
+            log::error!("error hit! {}", err);
             HttpResponse::InternalServerError().body("Error creating new reading entry")
         }
     }

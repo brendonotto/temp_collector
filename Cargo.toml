@@ -13,3 +13,5 @@ sqlx = { version = "0.5.10", features = ["runtime-actix-native-tls" , "postgres"
 actix-web = { version = "4.0.0-beta.20" }
 dotenv = "0.15.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+env_logger = "0.9.0"
+log = "0.4.14"

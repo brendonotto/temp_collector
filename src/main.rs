@@ -22,6 +22,7 @@ async fn index() -> impl Responder {
 #[actix_web::main]
 async fn main() -> Result<()> {
     dotenv().ok();
+    env_logger::init();
 
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
     let host = env::var("HOST").expect("HOST is not set in .env file");
